@@ -52,6 +52,7 @@ usage() {
     echo "Usage: mayalite <command>"
     echo ""
     echo "Commands:"
+    echo "  secrets  Configure API keys and settings (interactive)"
     echo "  check    Check system dependencies"
     echo "  setup    Create venv and install dependencies"
     echo "  start    Start MayaLite in background"
@@ -243,8 +244,16 @@ do_setup() {
     echo -e "${GREEN}✅ Setup complete!${NC}"
     echo ""
     echo "Next steps:"
-    echo "  1. Edit config.yaml with your API keys"
-    echo "  2. Run: ./mayalite start"
+    echo "  1. Run: ./mayalite secrets  (configure API keys)"
+    echo "  2. Run: ./mayalite start    (start the bot)"
+    echo ""
+    
+    # Offer to run config wizard
+    read -p "Run configuration wizard now? [Y/n] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        do_config
+    fi
 }
 
 is_running() {
@@ -342,6 +351,17 @@ do_logs() {
     tail -f "$LOGFILE"
 }
 
+do_config() {
+    # Ensure venv exists for Python imports
+    if [ ! -d "$VENV" ]; then
+        echo -e "${YELLOW}Setting up environment first...${NC}"
+        do_setup
+    fi
+    
+    source "$VENV/bin/activate"
+    python src/config_wizard.py
+}
+
 # Main
 case "${1:-}" in
     start)
@@ -366,6 +386,9 @@ case "${1:-}" in
         do_stop
         sleep 1
         do_start
+        ;;
+    config|keys|secrets)
+        do_config
         ;;
     *)
         usage

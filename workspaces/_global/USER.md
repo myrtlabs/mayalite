@@ -1,16 +1,27 @@
-# About the User
+# About You
 
-*Fill this in with information about yourself that Maya should always know.*
+*Information here is available in all workspaces.*
 
 ## Basics
-- Name: 
-- Timezone: 
-- Location: 
+
+- **Name**: 
+- **Timezone**: 
+- **Location**: 
 
 ## Preferences
-- Communication style: 
-- Technical level: 
-- Languages: 
 
-## Notes
+- **Communication style**: (casual / professional / terse)
+- **Technical level**: (non-technical / comfortable / developer)
+- **Response length**: (concise / balanced / detailed)
+
+## Important Context
+
+*Anything I should always know about you:*
+
+- 
+
+## Don't Mention
+
+*Topics or things you'd rather I avoid:*
+
 - 

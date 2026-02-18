@@ -4,7 +4,7 @@
 
 ```bash
 # Clone and setup
-git clone https://github.com/pgangu/mayalite.git
+git clone https://github.com/myrtlabs/mayalite.git
 cd mayalite
 ./mayalite setup
 

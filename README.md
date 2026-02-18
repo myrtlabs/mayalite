@@ -51,12 +51,16 @@ A minimal, secure AI assistant with workspace-scoped contexts. Telegram + Claude
 ### 3. Configure
 
 ```bash
-cp config.yaml.example config.yaml
-# Edit config.yaml with your API keys:
-# - Telegram bot token (from @BotFather)
-# - Anthropic API key
-# - Optional: Brave Search, OpenAI (Whisper)
+./mayalite secrets
 ```
+
+Interactive wizard walks you through:
+- Telegram bot token (from @BotFather)
+- Your Telegram user ID
+- Anthropic API key
+- Optional: Brave Search, OpenAI (Whisper)
+
+Run `./mayalite secrets` anytime to update settings.
 
 ### 4. Run
 
