@@ -57,7 +57,7 @@ A minimal, secure AI assistant with workspace-scoped contexts. Telegram + Claude
 Interactive wizard walks you through:
 - Telegram bot token (from @BotFather)
 - Your Telegram user ID
-- Anthropic API key
+- Anthropic API key or OAuth token
 - Optional: Brave Search, OpenAI (Whisper)
 
 Run `./mayalite secrets` anytime to update settings.
@@ -69,6 +69,47 @@ Run `./mayalite secrets` anytime to update settings.
 ./mayalite status   # Check if running
 ./mayalite logs     # Tail logs
 ./mayalite stop     # Stop
+```
+
+## Telegram Setup
+
+### Create a Bot
+
+1. Open Telegram and search for `@BotFather`
+2. Send `/newbot`
+3. Choose a display name (e.g., "Maya")
+4. Choose a username (must end in `bot`, e.g., `MyMayaBot`)
+5. Copy the token: `123456789:ABCdefGHIjklMNO...`
+
+### Get Your User ID
+
+1. Search for `@userinfobot` in Telegram
+2. Send `/start`
+3. It replies with your user ID (e.g., `8232145741`)
+
+### Get a Group ID
+
+1. Add your bot to the group
+2. Run `./mayalite logs`
+3. Send any message in the group
+4. Look for: `📩 Message from user=... chat=-1234567890`
+5. The negative number is your group ID
+
+### Enable Group Messages (Important!)
+
+By default, Telegram bots can only see commands in groups. To receive all messages:
+
+1. Open `@BotFather`
+2. Send `/mybots`
+3. Select your bot
+4. **Bot Settings** → **Group Privacy** → **Turn off**
+5. **Remove and re-add** the bot to your group (required for the change to take effect)
+
+### Auto-Start on Boot (macOS)
+
+```bash
+./mayalite enable   # Start on boot
+./mayalite disable  # Don't start on boot
 ```
 
 ## Commands
@@ -185,8 +226,11 @@ See `config.yaml.example` for all options. Key sections:
 telegram:
   token: "BOT_TOKEN"
   authorized_users: [YOUR_TELEGRAM_ID]
+  authorized_groups: [-1001234567890]  # Optional
 
 claude:
+  # API key (pay-as-you-go): sk-ant-api03-...
+  # OAuth token (Max subscription): sk-ant-oat01-...
   api_key: "sk-ant-..."
   model: "claude-sonnet-4-20250514"
   max_tokens: 4096
