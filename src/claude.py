@@ -15,6 +15,10 @@ import anthropic
 class ClaudeClient:
     """
     Claude API client with tool use and vision support.
+    
+    Supports both:
+    - API keys (sk-ant-api03-...) - pay-as-you-go
+    - OAuth tokens (sk-ant-oat01-...) - Claude Max subscription
     """
     
     def __init__(
@@ -24,7 +28,14 @@ class ClaudeClient:
         max_tokens: int = 4096,
         usage_callback: Optional[Callable[[str, int, int], None]] = None,
     ):
-        self.client = anthropic.Anthropic(api_key=api_key)
+        # Detect OAuth token vs API key
+        if api_key.startswith("sk-ant-oat"):
+            # OAuth token (Claude Max subscription)
+            self.client = anthropic.Anthropic(auth_token=api_key)
+        else:
+            # API key (pay-as-you-go)
+            self.client = anthropic.Anthropic(api_key=api_key)
+        
         self.model = model
         self.max_tokens = max_tokens
         self._usage_callback = usage_callback

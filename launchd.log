@@ -20,3 +20,6 @@
 2026-02-17 21:52:12,966 - telegram.ext.Application - INFO - Application.stop() complete
 ❌ Config file not found: /Users/alphabot1/.openclaw/workspace/projects/maya-lite/v0.4/config.yaml
 Copy config.yaml.example to config.yaml and fill in your values.
+[0;32m🚀 Starting MayaLite...[0m
+[0;32m✅ MayaLite started (PID 895)[0m
+   Logs: /Users/alphabot1/.openclaw/workspace/projects/maya-lite/v0.4/mayalite.log

@@ -141,12 +141,13 @@ def run_wizard():
     # Claude
     # ─────────────────────────────────────────
     print(f"{BLUE}═══ Claude AI ═══{NC}")
+    print(f"{DIM}Accepts API key (sk-ant-api03-...) or OAuth token (sk-ant-oat01-...){NC}")
     
     current_claude = config["claude"].get("api_key", "")
     if current_claude and "YOUR_" in current_claude:
         current_claude = ""
     config["claude"]["api_key"] = prompt(
-        "Anthropic API Key",
+        "Anthropic API Key or OAuth Token",
         current_claude,
         required=True,
         secret=True
