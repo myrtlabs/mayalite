@@ -12,6 +12,33 @@ LOGFILE="$SCRIPT_DIR/mayalite.log"
 VENV="$SCRIPT_DIR/.venv"
 MIN_PYTHON_VERSION="3.10"
 
+# Compare version strings (returns 0 if $1 >= $2)
+version_gte() {
+    [ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
+}
+
+# Find best Python 3.10+ available
+find_python() {
+    local candidates=(
+        "python3.14" "python3.13" "python3.12" "python3.11" "python3.10"
+        "/opt/homebrew/bin/python3"
+        "/usr/local/bin/python3"
+        "python3"
+    )
+    for cmd in "${candidates[@]}"; do
+        if command -v "$cmd" &>/dev/null; then
+            local ver=$("$cmd" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ -n "$ver" ] && version_gte "$ver" "$MIN_PYTHON_VERSION"; then
+                echo "$cmd"
+                return 0
+            fi
+        fi
+    done
+    echo "python3"  # Fallback, will fail version check later
+}
+
+PYTHON=$(find_python)
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -40,11 +67,6 @@ has_cmd() {
     command -v "$1" > /dev/null 2>&1
 }
 
-# Compare version strings (returns 0 if $1 >= $2)
-version_gte() {
-    [ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
-}
-
 # Check system dependencies
 do_check() {
     echo -e "${BLUE}🔍 Checking system dependencies...${NC}"
@@ -56,7 +78,7 @@ do_check() {
     # Python
     echo -n "Python 3.10+: "
     if has_cmd python3; then
-        py_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+        py_version=$($PYTHON -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
         if version_gte "$py_version" "$MIN_PYTHON_VERSION"; then
             echo -e "${GREEN}✓ $py_version${NC}"
         else
@@ -80,7 +102,7 @@ do_check() {
 
     # venv module
     echo -n "venv module: "
-    if python3 -c "import venv" 2>/dev/null; then
+    if $PYTHON -c "import venv" 2>/dev/null; then
         echo -e "${GREEN}✓${NC}"
     else
         echo -e "${RED}✗ not found (install python3-venv)${NC}"
@@ -179,14 +201,14 @@ do_setup() {
         exit 1
     fi
     
-    py_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+    py_version=$($PYTHON -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
     if ! version_gte "$py_version" "$MIN_PYTHON_VERSION"; then
         echo -e "${RED}❌ Python $py_version too old. Need $MIN_PYTHON_VERSION+${NC}"
         exit 1
     fi
     
     # Check venv module
-    if ! python3 -c "import venv" 2>/dev/null; then
+    if ! $PYTHON -c "import venv" 2>/dev/null; then
         echo -e "${RED}❌ venv module not found.${NC}"
         echo "   Install: sudo apt install python3-venv (Linux)"
         echo "            brew install python3 (macOS)"
@@ -210,7 +232,7 @@ do_setup() {
     find . -name "*.pyc" -delete 2>/dev/null || true
 
     echo -e "${YELLOW}🐍 Creating virtual environment...${NC}"
-    python3 -m venv .venv
+    $PYTHON -m venv .venv
 
     echo -e "${YELLOW}📦 Installing dependencies...${NC}"
     source .venv/bin/activate
