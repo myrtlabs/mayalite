@@ -56,7 +56,7 @@ digest:
 # Workspaces
 # ─────────────────────────────────────────────────────────────
 workspaces:
-  default: "main"
+  default: "base"
   history_limit: 20
   
   configs:
