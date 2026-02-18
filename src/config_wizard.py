@@ -126,6 +126,7 @@ def run_wizard():
     
     # Authorized groups (optional)
     print(f"{DIM}Group IDs are negative numbers (e.g., -1001234567890){NC}")
+    print(f"{DIM}Tip: Add bot to group, then send /start to see the group ID{NC}")
     current_groups = config["telegram"].get("authorized_groups", [])
     if current_groups:
         current_groups_str = ",".join(str(g) for g in current_groups)
@@ -142,6 +143,62 @@ def run_wizard():
         ]
     else:
         config["telegram"]["authorized_groups"] = []
+    
+    # Link groups to workspaces
+    if config["telegram"]["authorized_groups"]:
+        print()
+        print(f"{BLUE}═══ Group → Workspace Linking ═══{NC}")
+        print(f"{DIM}Each group can have its own workspace (persona, memory){NC}")
+        
+        # Get available workspaces
+        workspaces_dir = Path(__file__).parent.parent / "workspaces"
+        available_workspaces = []
+        if workspaces_dir.exists():
+            available_workspaces = [
+                d.name for d in workspaces_dir.iterdir() 
+                if d.is_dir() and not d.name.startswith("_")
+            ]
+        
+        if available_workspaces:
+            print(f"{DIM}Available workspaces: {', '.join(available_workspaces)}{NC}")
+        
+        # Ensure workspaces.configs exists
+        config.setdefault("workspaces", {})
+        config["workspaces"].setdefault("configs", {})
+        
+        for group_id in config["telegram"]["authorized_groups"]:
+            # Find current workspace for this group
+            current_ws = ""
+            for ws_name, ws_cfg in config["workspaces"].get("configs", {}).items():
+                if isinstance(ws_cfg, dict) and ws_cfg.get("telegram_group_id") == group_id:
+                    current_ws = ws_name
+                    break
+            
+            workspace = prompt(
+                f"Workspace for group {group_id}",
+                current_ws
+            )
+            
+            if workspace:
+                # Get listen mode
+                current_mode = "mentions"
+                if current_ws and current_ws in config["workspaces"].get("configs", {}):
+                    current_mode = config["workspaces"]["configs"][current_ws].get("listen_mode", "mentions")
+                
+                print(f"{DIM}  Listen mode: 'mentions' (respond when @mentioned) or 'all' (respond to everything){NC}")
+                listen_mode = prompt(
+                    f"  Listen mode for {workspace}",
+                    current_mode
+                ) or "mentions"
+                
+                # Update workspace config
+                config["workspaces"]["configs"][workspace] = {
+                    "mode": "group",
+                    "telegram_group_id": group_id,
+                    "listen_mode": listen_mode,
+                }
+        
+        print()
     
     # Alert chat ID (optional, defaults to first user)
     current_alert = config["telegram"].get("alert_chat_id", "")
