@@ -1245,6 +1245,7 @@ class MayaBot:
         logger.info("Starting MayaLite v0.4...")
         logger.info(f"Default workspace: {self.config.workspaces.default}")
         logger.info(f"Authorized users: {self.authorized_users}")
+        logger.info(f"Authorized groups: {self.authorized_groups}")
         logger.info(f"Search: {'✅' if self.search_client and self.search_client.enabled else '❌'}")
         logger.info(f"Voice: {'✅' if self.voice_transcriber and self.voice_transcriber.enabled else '❌'}")
         logger.info(f"Digest: {'✅' if self.config.digest.enabled else '❌'}")
