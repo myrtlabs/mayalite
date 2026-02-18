@@ -1,0 +1,352 @@
+#!/bin/bash
+# MayaLite v0.4 CLI
+# Usage: mayalite start|stop|status|logs|setup|check
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+PIDFILE="$SCRIPT_DIR/.mayalite.pid"
+LOGFILE="$SCRIPT_DIR/mayalite.log"
+VENV="$SCRIPT_DIR/.venv"
+MIN_PYTHON_VERSION="3.10"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+usage() {
+    echo "MayaLite v0.4"
+    echo ""
+    echo "Usage: mayalite <command>"
+    echo ""
+    echo "Commands:"
+    echo "  check    Check system dependencies"
+    echo "  setup    Create venv and install dependencies"
+    echo "  start    Start MayaLite in background"
+    echo "  stop     Stop MayaLite"
+    echo "  restart  Stop and start"
+    echo "  status   Check if running"
+    echo "  logs     Tail the log file"
+    echo ""
+}
+
+# Check if a command exists
+has_cmd() {
+    command -v "$1" > /dev/null 2>&1
+}
+
+# Compare version strings (returns 0 if $1 >= $2)
+version_gte() {
+    [ "$(printf '%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
+}
+
+# Check system dependencies
+do_check() {
+    echo -e "${BLUE}🔍 Checking system dependencies...${NC}"
+    echo ""
+    
+    errors=0
+    warnings=0
+
+    # Python
+    echo -n "Python 3.10+: "
+    if has_cmd python3; then
+        py_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+        if version_gte "$py_version" "$MIN_PYTHON_VERSION"; then
+            echo -e "${GREEN}✓ $py_version${NC}"
+        else
+            echo -e "${RED}✗ $py_version (need $MIN_PYTHON_VERSION+)${NC}"
+            ((errors++))
+        fi
+    else
+        echo -e "${RED}✗ not found${NC}"
+        ((errors++))
+    fi
+
+    # pip
+    echo -n "pip: "
+    if has_cmd pip3 || has_cmd pip; then
+        pip_version=$(pip3 --version 2>/dev/null || pip --version 2>/dev/null | awk '{print $2}')
+        echo -e "${GREEN}✓ $pip_version${NC}"
+    else
+        echo -e "${RED}✗ not found${NC}"
+        ((errors++))
+    fi
+
+    # venv module
+    echo -n "venv module: "
+    if python3 -c "import venv" 2>/dev/null; then
+        echo -e "${GREEN}✓${NC}"
+    else
+        echo -e "${RED}✗ not found (install python3-venv)${NC}"
+        ((errors++))
+    fi
+
+    # Config file
+    echo -n "config.yaml: "
+    if [ -f "$SCRIPT_DIR/config.yaml" ]; then
+        echo -e "${GREEN}✓${NC}"
+        
+        # Check for required keys
+        echo -n "  telegram.token: "
+        if grep -q "token:" config.yaml && ! grep -q "YOUR_BOT_TOKEN" config.yaml; then
+            echo -e "${GREEN}✓ configured${NC}"
+        else
+            echo -e "${YELLOW}⚠ not set${NC}"
+            ((warnings++))
+        fi
+        
+        echo -n "  claude.api_key: "
+        if grep -q "api_key:" config.yaml && ! grep -q "YOUR_ANTHROPIC" config.yaml; then
+            echo -e "${GREEN}✓ configured${NC}"
+        else
+            echo -e "${YELLOW}⚠ not set${NC}"
+            ((warnings++))
+        fi
+    else
+        echo -e "${YELLOW}⚠ not found (copy from config.yaml.example)${NC}"
+        ((warnings++))
+    fi
+
+    # Venv status
+    echo -n "Virtual env: "
+    if [ -d "$VENV" ]; then
+        echo -e "${GREEN}✓ exists${NC}"
+        
+        # Check if deps installed
+        echo -n "  dependencies: "
+        if [ -f "$VENV/bin/python" ] && "$VENV/bin/python" -c "import anthropic, telegram" 2>/dev/null; then
+            echo -e "${GREEN}✓ installed${NC}"
+        else
+            echo -e "${YELLOW}⚠ run ./mayalite setup${NC}"
+            ((warnings++))
+        fi
+    else
+        echo -e "${YELLOW}⚠ not created (run ./mayalite setup)${NC}"
+        ((warnings++))
+    fi
+
+    # Workspaces
+    echo -n "Workspaces dir: "
+    if [ -d "$SCRIPT_DIR/workspaces" ]; then
+        ws_count=$(ls -d "$SCRIPT_DIR/workspaces"/*/ 2>/dev/null | wc -l | xargs)
+        echo -e "${GREEN}✓ $ws_count workspace(s)${NC}"
+    else
+        echo -e "${YELLOW}⚠ not found${NC}"
+        ((warnings++))
+    fi
+
+    # Network (optional)
+    echo -n "Network (Telegram API): "
+    if has_cmd curl; then
+        if curl -s --connect-timeout 3 https://api.telegram.org > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ reachable${NC}"
+        else
+            echo -e "${YELLOW}⚠ unreachable${NC}"
+            ((warnings++))
+        fi
+    else
+        echo -e "${YELLOW}⚠ curl not found, skipped${NC}"
+    fi
+
+    echo ""
+    
+    if [ $errors -gt 0 ]; then
+        echo -e "${RED}❌ $errors error(s) found. Fix before running.${NC}"
+        return 1
+    elif [ $warnings -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  $warnings warning(s). May need attention.${NC}"
+        return 0
+    else
+        echo -e "${GREEN}✅ All checks passed!${NC}"
+        return 0
+    fi
+}
+
+do_setup() {
+    # Run dependency check first
+    echo -e "${BLUE}Running pre-setup checks...${NC}"
+    echo ""
+    
+    # Check Python
+    if ! has_cmd python3; then
+        echo -e "${RED}❌ Python 3 not found. Install Python 3.10+ first.${NC}"
+        exit 1
+    fi
+    
+    py_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+    if ! version_gte "$py_version" "$MIN_PYTHON_VERSION"; then
+        echo -e "${RED}❌ Python $py_version too old. Need $MIN_PYTHON_VERSION+${NC}"
+        exit 1
+    fi
+    
+    # Check venv module
+    if ! python3 -c "import venv" 2>/dev/null; then
+        echo -e "${RED}❌ venv module not found.${NC}"
+        echo "   Install: sudo apt install python3-venv (Linux)"
+        echo "            brew install python3 (macOS)"
+        exit 1
+    fi
+    
+    # Check config
+    if [ ! -f "$SCRIPT_DIR/config.yaml" ]; then
+        if [ -f "$SCRIPT_DIR/config.yaml.example" ]; then
+            echo -e "${YELLOW}⚠️  No config.yaml found. Creating from example...${NC}"
+            cp "$SCRIPT_DIR/config.yaml.example" "$SCRIPT_DIR/config.yaml"
+            echo -e "${YELLOW}   Edit config.yaml with your API keys before starting.${NC}"
+        else
+            echo -e "${RED}❌ No config.yaml or config.yaml.example found.${NC}"
+            exit 1
+        fi
+    fi
+
+    echo -e "${YELLOW}🧹 Cleaning up stale bytecode...${NC}"
+    find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+    find . -name "*.pyc" -delete 2>/dev/null || true
+
+    echo -e "${YELLOW}🐍 Creating virtual environment...${NC}"
+    python3 -m venv .venv
+
+    echo -e "${YELLOW}📦 Installing dependencies...${NC}"
+    source .venv/bin/activate
+    pip install --upgrade pip -q
+    pip install -r requirements.txt
+    
+    echo ""
+    echo -e "${GREEN}✅ Setup complete!${NC}"
+    echo ""
+    echo "Next steps:"
+    echo "  1. Edit config.yaml with your API keys"
+    echo "  2. Run: ./mayalite start"
+}
+
+is_running() {
+    if [ -f "$PIDFILE" ]; then
+        pid=$(cat "$PIDFILE")
+        if ps -p "$pid" > /dev/null 2>&1; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+do_start() {
+    if [ ! -d "$VENV" ]; then
+        echo -e "${YELLOW}No venv found. Running setup first...${NC}"
+        do_setup
+    fi
+
+    if is_running; then
+        pid=$(cat "$PIDFILE")
+        echo -e "${YELLOW}⚠️  MayaLite already running (PID $pid)${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}🚀 Starting MayaLite...${NC}"
+    
+    # Rotate log if it's getting big (>10MB)
+    if [ -f "$LOGFILE" ] && [ $(stat -f%z "$LOGFILE" 2>/dev/null || stat -c%s "$LOGFILE" 2>/dev/null) -gt 10485760 ]; then
+        mv "$LOGFILE" "$LOGFILE.old"
+    fi
+
+    source "$VENV/bin/activate"
+    nohup python main.py >> "$LOGFILE" 2>&1 &
+    pid=$!
+    echo $pid > "$PIDFILE"
+    
+    sleep 1
+    if is_running; then
+        echo -e "${GREEN}✅ MayaLite started (PID $pid)${NC}"
+        echo -e "   Logs: $LOGFILE"
+    else
+        echo -e "${RED}❌ Failed to start. Check logs:${NC}"
+        tail -20 "$LOGFILE"
+        exit 1
+    fi
+}
+
+do_stop() {
+    if ! is_running; then
+        echo -e "${YELLOW}⚠️  MayaLite not running${NC}"
+        rm -f "$PIDFILE"
+        exit 0
+    fi
+
+    pid=$(cat "$PIDFILE")
+    echo -e "${YELLOW}🛑 Stopping MayaLite (PID $pid)...${NC}"
+    kill "$pid" 2>/dev/null || true
+    
+    # Wait for graceful shutdown
+    for i in {1..10}; do
+        if ! ps -p "$pid" > /dev/null 2>&1; then
+            break
+        fi
+        sleep 0.5
+    done
+
+    # Force kill if still running
+    if ps -p "$pid" > /dev/null 2>&1; then
+        kill -9 "$pid" 2>/dev/null || true
+    fi
+
+    rm -f "$PIDFILE"
+    echo -e "${GREEN}✅ MayaLite stopped${NC}"
+}
+
+do_status() {
+    if is_running; then
+        pid=$(cat "$PIDFILE")
+        uptime=$(ps -p "$pid" -o etime= 2>/dev/null | xargs)
+        echo -e "${GREEN}🟢 MayaLite running${NC}"
+        echo "   PID: $pid"
+        echo "   Uptime: $uptime"
+        echo "   Log: $LOGFILE"
+    else
+        echo -e "${RED}🔴 MayaLite not running${NC}"
+        rm -f "$PIDFILE" 2>/dev/null
+    fi
+}
+
+do_logs() {
+    if [ ! -f "$LOGFILE" ]; then
+        echo -e "${YELLOW}No log file yet${NC}"
+        exit 0
+    fi
+    tail -f "$LOGFILE"
+}
+
+# Main
+case "${1:-}" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    status)
+        do_status
+        ;;
+    logs)
+        do_logs
+        ;;
+    setup)
+        do_setup
+        ;;
+    check)
+        do_check
+        ;;
+    restart)
+        do_stop
+        sleep 1
+        do_start
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac

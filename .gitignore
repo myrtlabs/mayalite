@@ -1,0 +1,52 @@
+# MayaLite v0.4 .gitignore
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Config with secrets (use config.yaml.example as template)
+config.yaml
+
+# Runtime files
+.mayalite.pid
+mayalite.log
+mayalite.log.old
+
+# Workspace data (personal memory/history)
+workspaces/*/history.jsonl
+workspaces/*/MEMORY.md
+workspaces/*/usage.json
+workspaces/*/reminders.json
+workspaces/*/*.bak
+
+# Keep workspace structure but not content
+!workspaces/*/SOUL.md
+!workspaces/*/TOOLS.md
+!workspaces/*/HEARTBEAT.md
+!workspaces/_global/
+
+# Export temp files
+*.zip
+exports/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

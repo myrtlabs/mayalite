@@ -1,0 +1,27 @@
+# MayaLite v0.4 Dependencies
+
+# Telegram bot
+python-telegram-bot>=21.0
+
+# Claude API
+anthropic>=0.40.0
+
+# Configuration
+pyyaml>=6.0
+
+# Scheduler for heartbeats and reminders
+apscheduler>=3.10.0
+
+# Web search (Brave API)
+aiohttp>=3.9.0
+requests>=2.31.0
+
+# Voice transcription (Whisper)
+openai>=1.0.0
+
+# Document reading
+pypdf>=4.0.0
+python-docx>=1.0.0
+
+# Natural time parsing (reminders)
+dateparser>=1.2.0

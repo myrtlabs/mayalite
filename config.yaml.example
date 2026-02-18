@@ -1,0 +1,85 @@
+# MayaLite v0.4 Configuration
+# Copy this to config.yaml and fill in your values
+
+# ─────────────────────────────────────────────────────────────
+# Telegram Bot
+# ─────────────────────────────────────────────────────────────
+telegram:
+  token: "YOUR_BOT_TOKEN_HERE"
+  authorized_users:
+    - 123456789  # Your Telegram user ID
+  alert_chat_id: 123456789  # Chat ID for heartbeat alerts (optional)
+
+# ─────────────────────────────────────────────────────────────
+# Claude AI
+# ─────────────────────────────────────────────────────────────
+claude:
+  api_key: "YOUR_ANTHROPIC_API_KEY"
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 4096
+
+# ─────────────────────────────────────────────────────────────
+# Multi-Model Configuration (v0.4)
+# ─────────────────────────────────────────────────────────────
+models:
+  default: "claude-sonnet-4-20250514"
+  aliases:
+    sonnet: "claude-sonnet-4-20250514"
+    opus: "claude-opus-4-20250514"
+    haiku: "claude-3-5-haiku-20241022"
+
+# ─────────────────────────────────────────────────────────────
+# Web Search - Brave API (v0.4)
+# ─────────────────────────────────────────────────────────────
+brave:
+  api_key: ""  # Get from https://api.search.brave.com
+
+# ─────────────────────────────────────────────────────────────
+# Voice Transcription - OpenAI Whisper (v0.4)
+# ─────────────────────────────────────────────────────────────
+openai:
+  api_key: ""  # Get from https://platform.openai.com
+  whisper_model: "whisper-1"
+
+# ─────────────────────────────────────────────────────────────
+# Daily Digest (v0.4)
+# ─────────────────────────────────────────────────────────────
+digest:
+  enabled: false
+  time: "08:00"
+  timezone: "America/New_York"
+  location: ""  # For weather, e.g., "New York, NY"
+
+# ─────────────────────────────────────────────────────────────
+# Workspaces
+# ─────────────────────────────────────────────────────────────
+workspaces:
+  default: "main"
+  history_limit: 20
+  
+  configs:
+    # Single-user workspace (default mode)
+    main:
+      mode: single
+    
+    # Shared workspace - multiple users, per-user history
+    team:
+      mode: shared-dm
+      authorized_users:
+        - 123456789
+        - 987654321
+    
+    # Group chat workspace
+    # project:
+    #   mode: group
+    #   telegram_group_id: -100123456789
+    #   listen_mode: mentions  # "all" or "mentions"
+
+# ─────────────────────────────────────────────────────────────
+# Heartbeat & Scheduling
+# ─────────────────────────────────────────────────────────────
+heartbeat:
+  enabled: false
+  interval_minutes: 30
+  compact_enabled: false
+  compact_cron: "0 3 * * *"  # 3am daily
