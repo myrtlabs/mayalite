@@ -56,6 +56,7 @@ class MayaBot:
         self.config = config
         self.workspaces_path = workspaces_path
         self.authorized_users: Set[int] = set(config.telegram.authorized_users)
+        self.authorized_groups: Set[int] = set(config.telegram.authorized_groups)
         
         # Per-user workspace tracking
         self._user_workspaces: Dict[int, str] = {}
@@ -163,6 +164,18 @@ class MayaBot:
     
     def _is_authorized(self, user_id: int) -> bool:
         """Check if user is globally authorized."""
+        return user_id in self.authorized_users
+    
+    def _is_authorized_chat(self, update: Update) -> bool:
+        """Check if the chat (user or group) is authorized."""
+        chat_id = update.effective_chat.id
+        user_id = update.effective_user.id
+        
+        # Check if it's a group chat
+        if self._is_group_chat(update):
+            return chat_id in self.authorized_groups
+        
+        # For private chats, check user authorization
         return user_id in self.authorized_users
     
     def _is_group_chat(self, update: Update) -> bool:
@@ -1030,9 +1043,11 @@ class MayaBot:
         chat_type = update.effective_chat.type
         logger.info(f"📩 Message from user={user_id} chat={chat_id} type={chat_type}")
         
-        if not self._is_authorized(user_id):
-            logger.warning(f"Unauthorized: {user_id}")
-            await update.message.reply_text("⛔ Not authorized.")
+        if not self._is_authorized_chat(update):
+            logger.warning(f"Unauthorized: user={user_id} chat={chat_id}")
+            # Only reply in private chats
+            if not self._is_group_chat(update):
+                await update.message.reply_text("⛔ Not authorized.")
             return
         
         # Determine workspace and mode

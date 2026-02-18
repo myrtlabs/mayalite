@@ -20,6 +20,7 @@ import yaml
 class TelegramConfig:
     token: str
     authorized_users: List[int]
+    authorized_groups: List[int] = field(default_factory=list)  # Group chat IDs
     alert_chat_id: Optional[int] = None  # For heartbeat alerts
 
 
@@ -200,6 +201,7 @@ def load_config(config_path: Optional[Path] = None) -> Config:
         telegram=TelegramConfig(
             token=data["telegram"]["token"],
             authorized_users=data["telegram"]["authorized_users"],
+            authorized_groups=data["telegram"].get("authorized_groups", []),
             alert_chat_id=data["telegram"].get("alert_chat_id"),
         ),
         claude=ClaudeConfig(

@@ -124,6 +124,25 @@ def run_wizard():
         int(u.strip()) for u in users_input.split(",") if u.strip().isdigit()
     ]
     
+    # Authorized groups (optional)
+    print(f"{DIM}Group IDs are negative numbers (e.g., -1001234567890){NC}")
+    current_groups = config["telegram"].get("authorized_groups", [])
+    if current_groups:
+        current_groups_str = ",".join(str(g) for g in current_groups)
+    else:
+        current_groups_str = ""
+    
+    groups_input = prompt(
+        "Authorized Group IDs (optional, comma-separated)",
+        current_groups_str
+    )
+    if groups_input:
+        config["telegram"]["authorized_groups"] = [
+            int(g.strip()) for g in groups_input.split(",") if g.strip().lstrip("-").isdigit()
+        ]
+    else:
+        config["telegram"]["authorized_groups"] = []
+    
     # Alert chat ID (optional, defaults to first user)
     current_alert = config["telegram"].get("alert_chat_id", "")
     if not current_alert or current_alert == 123456789:

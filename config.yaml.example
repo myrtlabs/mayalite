@@ -8,6 +8,8 @@ telegram:
   token: "YOUR_BOT_TOKEN_HERE"
   authorized_users:
     - 123456789  # Your Telegram user ID
+  authorized_groups:  # Optional: group chat IDs (negative numbers)
+    # - -1001234567890
   alert_chat_id: 123456789  # Chat ID for heartbeat alerts (optional)
 
 # ─────────────────────────────────────────────────────────────
