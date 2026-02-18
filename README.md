@@ -1,245 +1,279 @@
-# MayaLite v0.4 — Full Featured AI Assistant
+# MayaLite v0.4
 
-A full-featured, workspace-aware AI assistant for Telegram with web search, voice transcription, image understanding, reminders, document reading, and more.
+A minimal, secure AI assistant with workspace-scoped contexts. Telegram + Claude, no bloat.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
+## Why MayaLite?
+
+| Feature | MayaLite | Full Agent Frameworks |
+|---------|----------|----------------------|
+| Lines of code | ~2,000 | 15,000+ |
+| Open ports | None (polling) | Webhooks required |
+| Shell execution | ❌ Blocked by design | ✅ Full access |
+| Setup time | 5 minutes | Hours |
+| Dependencies | 10 packages | 50+ packages |
+
+**MayaLite is for:** Personal AI assistants where you want simplicity, security, and full control.
 
 ## Features
 
-### Core Features (from v0.3)
-- **Workspace-scoped contexts** — Multiple isolated workspaces with their own memory
-- **Collaborative modes** — Single user, shared-dm, or group chat
-- **Long-term memory** — MEMORY.md with timestamps and auto-compaction
-- **Heartbeat system** — Proactive scheduled check-ins
-- **Secure** — No shell execution, sandboxed file access
+### Core
+- 🗂 **Workspaces** — Separate contexts for different domains (work, personal, projects)
+- 🧠 **Memory** — Persistent MEMORY.md per workspace with auto-compaction
+- 💬 **Telegram** — Polling-based (no open ports, no webhook exposure)
+- 🔒 **Secure** — No shell exec, sandboxed file access, explicit allowlists
 
-### v0.4 New Features
-
-#### 🔍 Web Search
-Search the web using Brave Search API, with Claude tool_use for automatic searching.
-```
-/search weather in NYC
-```
-Claude can also automatically search when needed during conversations.
-
-#### 🎤 Voice Messages
-Send voice messages and they'll be transcribed via OpenAI Whisper, then processed as text.
-
-#### 🖼 Image Understanding
-Send photos and Claude will analyze them using vision. Add a caption to ask specific questions.
-
-#### ⏰ Reminders
-Natural language reminder parsing with persistent storage.
-```
-/remind in 2 hours Check the oven
-/remind tomorrow at 9am Call dentist
-/reminders  # List pending
-```
-
-#### 📄 Document Reading
-Send PDF, TXT, or DOCX files for analysis.
-```
-/summarize  # Summarize last document
-```
-Or send with a caption to ask questions directly.
-
-#### 📦 Export
-Export your workspace data.
-```
-/export memory   # Export MEMORY.md
-/export history  # Export chat history
-/export all      # Export full workspace as zip
-```
-
-#### 🤖 Multi-Model Support
-Switch between Claude models per workspace.
-```
-/model          # Show current model
-/model sonnet   # Switch to Sonnet
-/model opus     # Switch to Opus
-```
-
-#### 📊 Cost Tracking
-Track token usage and estimated costs.
-```
-/usage        # View stats
-/usage reset  # Reset counters
-```
-
-#### 🌅 Daily Digest
-Configurable daily summary with weather, reminders, and memory highlights.
+### v0.4 Additions
+- 🔍 **Web Search** — Brave API with Claude tool_use
+- 🎤 **Voice** — Whisper transcription for voice messages
+- 🖼 **Vision** — Image understanding via Claude
+- ⏰ **Reminders** — Natural language ("remind me in 2 hours...")
+- 📄 **Documents** — PDF, TXT, DOCX reading and summarization
+- 🤖 **Multi-Model** — Switch between Sonnet/Opus per workspace
+- 📊 **Usage Tracking** — Token counts and cost estimates
 
 ## Quick Start
 
-### 1. Clone and Install
+### 1. Check Dependencies
 
 ```bash
-cd /path/to/maya-lite/v0.4
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+./mayalite check
 ```
 
-### 2. Configure
+### 2. Setup
+
+```bash
+./mayalite setup
+```
+
+### 3. Configure
 
 ```bash
 cp config.yaml.example config.yaml
-# Edit config.yaml with your API keys
+# Edit config.yaml with your API keys:
+# - Telegram bot token (from @BotFather)
+# - Anthropic API key
+# - Optional: Brave Search, OpenAI (Whisper)
 ```
 
-Required API keys:
-- **Telegram Bot Token** — From [@BotFather](https://t.me/BotFather)
-- **Anthropic API Key** — From [Anthropic Console](https://console.anthropic.com)
-
-Optional API keys:
-- **Brave Search API** — For web search ([Get here](https://api.search.brave.com))
-- **OpenAI API Key** — For voice transcription ([Get here](https://platform.openai.com))
-
-### 3. Run
+### 4. Run
 
 ```bash
-python main.py
-```
-
-Or with a custom config:
-```bash
-python main.py /path/to/config.yaml
+./mayalite start    # Start in background
+./mayalite status   # Check if running
+./mayalite logs     # Tail logs
+./mayalite stop     # Stop
 ```
 
 ## Commands
 
+### Chat Commands
+
 | Command | Description |
 |---------|-------------|
-| `/start` | Welcome message |
-| `/help` | Full command list |
-| `/status` | Workspace status and stats |
+| `/help` | Show all commands |
+| `/status` | Workspace info, model, usage |
 | `/clear` | Clear conversation history |
-| `/remember <text>` | Save to memory |
-| `/workspace [name]` | List or switch workspaces |
+| `/remember <text>` | Save to MEMORY.md |
+
+### Workspaces
+
+| Command | Description |
+|---------|-------------|
+| `/workspace` | List available workspaces |
+| `/workspace <name>` | Switch to workspace |
+
+### Search & Media
+
+| Command | Description |
+|---------|-------------|
 | `/search <query>` | Web search |
-| `/remind <time> <msg>` | Set reminder |
-| `/reminders` | List pending reminders |
-| `/export memory\|history\|all` | Export data |
-| `/model [name]` | View/change model |
-| `/usage [reset]` | Token usage stats |
 | `/summarize` | Summarize last document |
-| `/compact [yes]` | Compact memory |
-| `/catchup` | Summarize others' chats |
-| `/heartbeat` | Trigger heartbeat |
+| 🎤 *Send voice* | Auto-transcribed |
+| 🖼 *Send photo* | Analyzed by Claude |
+| 📄 *Send document* | PDF/TXT/DOCX parsed |
 
-## Directory Structure
+### Reminders
+
+| Command | Description |
+|---------|-------------|
+| `/remind <time> <msg>` | Set reminder |
+| `/reminders` | List pending |
+
+Examples:
+- `/remind in 2 hours Check the oven`
+- `/remind tomorrow at 9am Call dentist`
+
+### Model & Usage
+
+| Command | Description |
+|---------|-------------|
+| `/model` | Show current model |
+| `/model sonnet` | Switch to Sonnet |
+| `/model opus` | Switch to Opus |
+| `/usage` | Token stats and costs |
+| `/usage reset` | Reset counters |
+
+### Memory
+
+| Command | Description |
+|---------|-------------|
+| `/compact` | Preview memory compaction |
+| `/compact yes` | Apply compaction |
+| `/catchup` | Summarize others' chats (shared-dm) |
+| `/heartbeat` | Trigger heartbeat check |
+
+### Export
+
+| Command | Description |
+|---------|-------------|
+| `/export memory` | Export MEMORY.md |
+| `/export history` | Export chat history |
+| `/export all` | Export full workspace zip |
+
+## Workspace Structure
 
 ```
-v0.4/
-├── main.py                 # Entry point
-├── config.yaml             # Your configuration
-├── config.yaml.example     # Template
-├── requirements.txt        # Dependencies
-├── src/
-│   ├── __init__.py
-│   ├── bot.py             # Main bot (all handlers)
-│   ├── config.py          # Configuration loading
-│   ├── claude.py          # Claude API client
-│   ├── memory.py          # Memory management
-│   ├── workspace.py       # Workspace management
-│   ├── scheduler.py       # APScheduler wrapper
-│   ├── compactor.py       # Memory compaction
-│   ├── brave.py           # Web search
-│   ├── voice.py           # Voice transcription
-│   ├── vision.py          # Image understanding
-│   ├── reminders.py       # Reminder system
-│   ├── documents.py       # Document reading
-│   ├── export.py          # Data export
-│   ├── usage.py           # Cost tracking
-│   └── digest.py          # Daily digest
-└── workspaces/
-    ├── _global/
-    │   ├── IDENTITY.md    # Shared identity
-    │   └── USER.md        # About the user
-    └── main/
-        ├── SOUL.md        # Workspace persona
-        ├── MEMORY.md      # Long-term memory
-        ├── TOOLS.md       # Tools reference
-        ├── HEARTBEAT.md   # Heartbeat instructions
-        └── history.jsonl  # Conversation history
+workspaces/
+├── _global/
+│   ├── IDENTITY.md     # Who the bot is (shared across workspaces)
+│   └── USER.md         # About the user
+├── main/
+│   ├── SOUL.md         # Workspace persona/instructions
+│   ├── MEMORY.md       # Long-term memory (auto-updated)
+│   ├── TOOLS.md        # Available tools/references
+│   ├── HEARTBEAT.md    # Proactive check instructions
+│   └── history.jsonl   # Conversation history
+└── pricing/
+    ├── SOUL.md         # "You are a pricing analyst..."
+    └── ...
 ```
 
-## Configuration Reference
+## Workspace Modes
 
-### Workspace Modes
+| Mode | Use Case |
+|------|----------|
+| `single` | One user, one workspace (default) |
+| `shared-dm` | Multiple users DM privately, shared memory |
+| `group` | Telegram group chat, everyone sees everything |
 
-- **single** — Default. One user, one workspace.
-- **shared-dm** — Multiple users in DM, per-user history, shared memory.
-- **group** — Tied to a Telegram group chat.
-
-### Heartbeat
-
-The heartbeat system periodically checks `HEARTBEAT.md` and sends alerts if action is needed.
+Configure in `config.yaml`:
 
 ```yaml
+workspaces:
+  configs:
+    pricing-team:
+      mode: "shared-dm"
+      authorized_users: [123456789, 987654321]
+    
+    family:
+      mode: "group"
+      telegram_group_id: -100123456789
+```
+
+## Configuration
+
+See `config.yaml.example` for all options. Key sections:
+
+```yaml
+telegram:
+  token: "BOT_TOKEN"
+  authorized_users: [YOUR_TELEGRAM_ID]
+
+claude:
+  api_key: "sk-ant-..."
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 4096
+
+# Optional features
+brave:
+  api_key: ""  # For web search
+
+openai:
+  api_key: ""  # For voice transcription
+
 heartbeat:
   enabled: true
   interval_minutes: 30
-```
 
-### Daily Digest
-
-Sends a daily summary at the configured time.
-
-```yaml
 digest:
-  enabled: true
+  enabled: false
   time: "08:00"
   timezone: "America/New_York"
-  location: "New York, NY"  # For weather
 ```
 
-## Pricing Notes
+## Security Model
 
-Token costs are tracked per workspace in `usage.json`. Approximate costs (per 1M tokens):
+MayaLite is designed with security as a core constraint:
 
-| Model | Input | Output |
-|-------|-------|--------|
-| claude-sonnet-4 | $3 | $15 |
-| claude-opus-4 | $15 | $75 |
-| claude-3-5-haiku | $1 | $5 |
+1. **No shell execution** — Cannot run system commands
+2. **Sandboxed files** — Only workspace directories accessible
+3. **Polling-based** — No open ports, no webhook exposure
+4. **Explicit allowlist** — Only authorized Telegram users
+5. **Secrets isolated** — API keys in config.yaml (gitignored)
 
-Voice transcription via Whisper is $0.006/minute.
+## CLI Reference
 
-## Security
+```bash
+./mayalite check    # Verify dependencies
+./mayalite setup    # Create venv, install deps
+./mayalite start    # Start bot in background
+./mayalite stop     # Stop bot
+./mayalite restart  # Stop + start
+./mayalite status   # Check if running, show uptime
+./mayalite logs     # Tail log file (Ctrl+C to exit)
+```
 
-- **No shell execution** — Maya cannot run arbitrary commands
-- **Sandboxed file access** — Only workspace directories accessible
-- **API keys in config only** — Never exposed in messages
-- **User authorization** — Only listed users can interact
+## Development
 
-## Changelog
+```bash
+# Install with dev dependencies
+pip install -e ".[dev]"
 
-### v0.4.0
-- Web search via Brave API
-- Voice message transcription via Whisper
-- Image understanding via Claude vision
-- Natural language reminders with persistence
-- Document reading (PDF, TXT, DOCX)
-- Export functionality
-- Multi-model support
-- Cost tracking
-- Daily digest
+# Run tests
+pytest
 
-### v0.3.0
-- Collaborative workspace modes
-- Per-user history for shared-dm
-- Group chat support
-- /catchup command
+# Lint
+ruff check src/
 
-### v0.2.0
-- Multi-workspace support
-- Heartbeat system
-- Memory compaction
+# Type check
+mypy src/
+```
 
-### v0.1.0
-- Initial release
-- Basic chat
-- Memory persistence
+## Project Structure
+
+```
+v0.4/
+├── mayalite           # CLI script
+├── main.py            # Entry point
+├── src/
+│   ├── bot.py         # Telegram handlers
+│   ├── claude.py      # Claude API client
+│   ├── workspace.py   # Workspace management
+│   ├── memory.py      # Memory/history
+│   ├── brave.py       # Web search
+│   ├── voice.py       # Whisper transcription
+│   ├── vision.py      # Image handling
+│   ├── reminders.py   # Reminder system
+│   ├── documents.py   # Document parsing
+│   ├── export.py      # Export functionality
+│   ├── usage.py       # Cost tracking
+│   ├── scheduler.py   # APScheduler wrapper
+│   ├── compactor.py   # Memory compaction
+│   ├── digest.py      # Daily digest
+│   └── config.py      # Configuration
+├── workspaces/        # Workspace directories
+├── tests/             # Test suite
+├── config.yaml.example
+└── requirements.txt
+```
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
