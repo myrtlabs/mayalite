@@ -1,0 +1,22 @@
+[0;32m🚀 Starting MayaLite...[0m
+[0;31m❌ Failed to start. Check logs:[0m
+2026-02-17 21:49:51,577 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:50:01,822 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:50:12,061 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:50:22,298 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:50:32,541 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:50:42,680 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:50:52,921 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:51:03,164 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:51:13,293 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:51:23,402 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:51:33,513 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:51:43,623 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:51:53,850 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:52:03,976 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:52:12,953 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8212273969:AAELdC1A43rc3IOXfw9abKmY1_yUb6-n8nY/getUpdates "HTTP/1.1 200 OK"
+2026-02-17 21:52:12,954 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2026-02-17 21:52:12,955 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-02-17 21:52:12,966 - telegram.ext.Application - INFO - Application.stop() complete
+❌ Config file not found: /Users/alphabot1/.openclaw/workspace/projects/maya-lite/v0.4/config.yaml
+Copy config.yaml.example to config.yaml and fill in your values.

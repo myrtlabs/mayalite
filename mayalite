@@ -46,6 +46,9 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+PLIST_NAME="com.myrtlabs.mayalite"
+PLIST_PATH="$HOME/Library/LaunchAgents/$PLIST_NAME.plist"
+
 usage() {
     echo "MayaLite v0.4"
     echo ""
@@ -60,6 +63,8 @@ usage() {
     echo "  restart  Stop and start"
     echo "  status   Check if running"
     echo "  logs     Tail the log file"
+    echo "  enable   Start MayaLite on boot (macOS)"
+    echo "  disable  Don't start on boot"
     echo ""
 }
 
@@ -341,6 +346,15 @@ do_status() {
         echo -e "${RED}🔴 MayaLite not running${NC}"
         rm -f "$PIDFILE" 2>/dev/null
     fi
+    
+    # Show boot status (macOS)
+    if [[ "$(uname)" == "Darwin" ]]; then
+        if [ -f "$PLIST_PATH" ]; then
+            echo -e "   Boot: ${GREEN}enabled${NC}"
+        else
+            echo -e "   Boot: ${YELLOW}disabled${NC}"
+        fi
+    fi
 }
 
 do_logs() {
@@ -360,6 +374,68 @@ do_config() {
     
     source "$VENV/bin/activate"
     python src/config_wizard.py
+}
+
+do_enable() {
+    # macOS only
+    if [[ "$(uname)" != "Darwin" ]]; then
+        echo -e "${RED}Auto-start on boot is only supported on macOS${NC}"
+        echo "For Linux, create a systemd service manually."
+        exit 1
+    fi
+
+    echo -e "${BLUE}Enabling MayaLite to start on boot...${NC}"
+    
+    mkdir -p "$HOME/Library/LaunchAgents"
+    
+    cat > "$PLIST_PATH" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$PLIST_NAME</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$SCRIPT_DIR/mayalite</string>
+        <string>start</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>$SCRIPT_DIR</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>$SCRIPT_DIR/launchd.log</string>
+    <key>StandardErrorPath</key>
+    <string>$SCRIPT_DIR/launchd.log</string>
+</dict>
+</plist>
+EOF
+
+    launchctl load "$PLIST_PATH" 2>/dev/null || true
+    
+    echo -e "${GREEN}✅ MayaLite will start automatically on boot${NC}"
+    echo "   Plist: $PLIST_PATH"
+    echo ""
+    echo "To disable: ./mayalite disable"
+}
+
+do_disable() {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        echo -e "${RED}Auto-start on boot is only supported on macOS${NC}"
+        exit 1
+    fi
+
+    if [ -f "$PLIST_PATH" ]; then
+        echo -e "${YELLOW}Disabling MayaLite auto-start...${NC}"
+        launchctl unload "$PLIST_PATH" 2>/dev/null || true
+        rm -f "$PLIST_PATH"
+        echo -e "${GREEN}✅ MayaLite will no longer start on boot${NC}"
+    else
+        echo -e "${YELLOW}Auto-start was not enabled${NC}"
+    fi
 }
 
 # Main
@@ -389,6 +465,12 @@ case "${1:-}" in
         ;;
     config|keys|secrets)
         do_config
+        ;;
+    enable)
+        do_enable
+        ;;
+    disable)
+        do_disable
         ;;
     *)
         usage
